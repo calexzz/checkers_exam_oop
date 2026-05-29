@@ -5,7 +5,7 @@
 class Checker : public Figure {
     public:
     Checker(Color color) : Figure(color) {}
-    std::vector<Move> getMoves(Board &board) override;
+    std::vector<Move> getMoves(Board& board, Cell* myCell) override;
 };
 
 #endif //CHECKERS_CHECKER_H

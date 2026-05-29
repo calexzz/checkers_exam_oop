@@ -18,6 +18,8 @@ public:
     bool needsPromotion(Cell* cell);
     void promote(Cell* cell);
     bool isWhiteWinning();
+    Cell* getCell(int x, int y);
+    bool inBounds(int x, int y);
 };
 
 

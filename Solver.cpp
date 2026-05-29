@@ -1,7 +1,7 @@
 #include "Solver.h"
 #include <vector>
 #include <algorithm>
-
+#include <iostream>
 #include "Move.h"
 #include "Board.h"
 
@@ -45,5 +45,6 @@ bool Solver::findWinningLine(int depth, Color color) {
             return true;
         }
     }
+    cout << "depth=" << depth << " color=" << color << " ходов=" << moves.size() << endl;
     return false;
 }

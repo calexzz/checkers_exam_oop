@@ -11,7 +11,7 @@ class Figure {
 public:
     Color color;
     Figure(Color color) : color(color) {}
-    virtual std::vector<Move> getMoves(Board& board) = 0;
+    virtual std::vector<Move> getMoves(Board& board, Cell* myCell) = 0;
     virtual ~Figure() {}
 };
 

@@ -1,5 +1,8 @@
 #ifndef CHECKERS_GAME_H
 #define CHECKERS_GAME_H
+
+#include <string>
+#include <vector>
 #include "Board.h"
 #include "Move.h"
 #include "Solver.h"

@@ -44,6 +44,7 @@ void Board::loadPieces(std::ifstream& file, Color color) {
             figure = new Checker(color);
         }
         cells[x][y].figure = figure; // ставим на клетку
+        cout << "Загружена фигура: " << x << " " << y << " цвет: " << color << endl;
     }
 }
 
@@ -63,11 +64,12 @@ vector<Move> Board::getAllMoves(Color color) {
         for (int j = 0; j < 8; j++) {
             Cell& cell = cells[i][j];
             if (cell.figure != nullptr && cell.figure->color == color) {
-                vector<Move> pieceMoves = cell.figure->getMoves(*this);
+                vector<Move> pieceMoves = cell.figure->getMoves(*this, &cell);
                 result.insert(result.end(), pieceMoves.begin(), pieceMoves.end());
             }
         }
     }
+    cout << "Ходов найдено для цвета " << color << ": " << result.size() << endl;
     return result;
 }
 
@@ -123,12 +125,23 @@ void Board::undoMove(Move& move) {
 bool Board::isWhiteWinning() {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
-            // если нашли черную фигуру и у неё есть ходы, то белые НЕ выиграли
-            // если нет ходов у черной шашки, то белые выиграли
-            if (cells[i][j].figure != nullptr && cells[i][j].figure->color == BLACK) {
-                return getAllMoves(BLACK).empty();
-            }
+            if (cells[i][j].figure != nullptr &&
+                cells[i][j].figure->color == BLACK) {
+                bool empty = getAllMoves(BLACK).empty();
+                cout << "isWhiteWinning: черные есть, ходов="
+                     << getAllMoves(BLACK).size() << endl;
+                return empty;
+                }
         }
     }
-    return true; // иначе белые выиграли
+    cout << "isWhiteWinning: черных нет → true" << endl;
+    return true;
+}
+
+Cell* Board::getCell(int x, int y) {
+    return &cells[x][y];
+}
+
+bool Board::inBounds(int x, int y) {
+    return x >= 0 && x < 8 && y >= 0 && y < 8;
 }
