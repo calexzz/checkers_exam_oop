@@ -57,3 +57,78 @@ void Board::loadFromFile(const std::string &filename) {
     loadPieces(file, BLACK);
 }
 
+vector<Move> Board::getAllMoves(Color color) {
+    vector<Move> result;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Cell& cell = cells[i][j];
+            if (cell.figure != nullptr && cell.figure->color == color) {
+                vector<Move> pieceMoves = cell.figure->getMoves(*this);
+                result.insert(result.end(), pieceMoves.begin(), pieceMoves.end());
+            }
+        }
+    }
+    return result;
+}
+
+void Board::applyMove(Move &move) {
+    // передвигаем фигуру
+    move.dst->figure = move.src->figure;
+    move.src->figure = nullptr;
+
+    // убираем срубленную фигуру
+    if (move.captured != nullptr) {
+        move.capturedFigure = move.captured->figure; // запомнили
+        move.captured->figure = nullptr;
+    }
+
+    // проверяем нужно ли превращение в дамку
+    move.wasPromotion = needsPromotion(move.dst);
+    if (move.wasPromotion) {
+        promote(move.dst); // превращаем
+    }
+}
+
+bool Board::needsPromotion(Cell* cell) {
+    if (cell->figure == nullptr) return false;
+    if (cell->figure->color == WHITE && cell->y == 7) return true; // если белая на 7 ряду, то дамка
+    if (cell->figure->color == BLACK && cell->y == 0) return true; // если черная на 1 ряду, то дамка
+    return false;
+}
+
+void Board::promote(Cell* cell) {
+    Color color = cell->figure->color; // сохранили цвет шашки
+    delete cell->figure; // удалили шашку
+    cell->figure = new Queen(color); // создали дамку
+}
+
+void Board::undoMove(Move& move) {
+    // если было превращение, то вернуть Checker
+    if (move.wasPromotion) {
+        Color color = move.dst->figure->color;
+        delete move.dst->figure;
+        move.dst->figure = new Checker(color);
+    }
+
+    // вернуть фигуру обратно
+    move.src->figure = move.dst->figure;
+    move.dst->figure = nullptr;
+
+    // вернуть срубленную фигуру
+    if (move.captured != nullptr) {
+        move.captured->figure = move.capturedFigure; // вернули на доску
+    }
+}
+
+bool Board::isWhiteWinning() {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            // если нашли черную фигуру и у неё есть ходы, то белые НЕ выиграли
+            // если нет ходов у черной шашки, то белые выиграли
+            if (cells[i][j].figure != nullptr && cells[i][j].figure->color == BLACK) {
+                return getAllMoves(BLACK).empty();
+            }
+        }
+    }
+    return true; // иначе белые выиграли
+}
