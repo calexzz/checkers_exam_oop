@@ -10,7 +10,7 @@ class Solver {
     std::vector<Move> solution;
 public:
     Solver(Board& b, int depth) : board(b), depth(depth) {};
-    std::vector<Move>solve();
+    std::vector<Move> solve();
     bool findWinningLine(int depth, Color color);
 };
 
