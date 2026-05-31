@@ -4,47 +4,41 @@
 #include <iostream>
 #include "Move.h"
 #include "Board.h"
+#include "Result.h"
 
 using namespace std;
 
 vector<Move> Solver::solve() {
-    findWinningLine(depth, WHITE);
-    // ходы добавляются в обратном порядке, поэтому переворачиваем вектор ходов
-    reverse(solution.begin(), solution.end());
+    Result result = findWinningLine(depth, WHITE);
+    if (result == WHITE_WINS) {
+        winner = WHITE;
+        reverse(solution.begin(), solution.end());
+    } else if (result == BLACK_WINS) {
+        winner = BLACK;
+        reverse(solution.begin(), solution.end());
+    }
     return solution;
 }
 
-bool Solver::findWinningLine(int depth, Color color) {
-    if (depth == 0) return board.isWhiteWinning(); // выход из рекурсии
+Result Solver::findWinningLine(int depth, Color color) {
+    if (board.noFigures(BLACK)) return WHITE_WINS;
+    if (board.noFigures(WHITE)) return BLACK_WINS;
+    if (depth == 0) return NO_RESULT;
 
-    // получаем все возможные ходы для текущего цвета
     vector<Move> moves = board.getAllMoves(color);
+    if (moves.empty()) return NO_RESULT;
 
-    // если ходов нет, то опрееляем победителя
-    if (moves.empty()) {
-        if (color == BLACK) return true; // черные не могут ходить - белые выиграли
-        return false; // белые не могут ходить - проиграли
-    }
-
-    // перебираем все возможные ходы
     for (Move& move : moves) {
-        board.applyMove(move); // делаем ход
-
-        // Определяем чей следующий ход
+        board.applyMove(move);
         Color nextColor = (color == WHITE) ? BLACK : WHITE;
-
-        // рекурсивно ищем выигрыш на глубину-1 для следующего цвета
-        bool result = findWinningLine(depth-1, nextColor);
-
-        // отменяем ход
+        Result result = findWinningLine(depth-1, nextColor);
         board.undoMove(move);
 
-        // если нашли выигрышный ход, то запоминаем его
-        if (result) {
+        if (result == WHITE_WINS || result == BLACK_WINS) {
             solution.push_back(move);
-            return true;
+            return result;
         }
     }
-    cout << "depth=" << depth << " color=" << color << " ходов=" << moves.size() << endl;
-    return false;
+
+    return NO_RESULT;
 }

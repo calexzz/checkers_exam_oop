@@ -44,7 +44,6 @@ void Board::loadPieces(std::ifstream& file, Color color) {
             figure = new Checker(color);
         }
         cells[x][y].figure = figure; // ставим на клетку
-        cout << "Загружена фигура: " << x << " " << y << " цвет: " << color << endl;
     }
 }
 
@@ -69,7 +68,6 @@ vector<Move> Board::getAllMoves(Color color) {
             }
         }
     }
-    cout << "Ходов найдено для цвета " << color << ": " << result.size() << endl;
     return result;
 }
 
@@ -78,10 +76,10 @@ void Board::applyMove(Move &move) {
     move.dst->figure = move.src->figure;
     move.src->figure = nullptr;
 
-    // убираем срубленную фигуру
-    if (move.captured != nullptr) {
-        move.capturedFigure = move.captured->figure; // запомнили
-        move.captured->figure = nullptr;
+    // убираем все срубленные фигуры
+    for (int i = 0; i < move.captured.size(); i++) {
+        move.figures.push_back(move.captured[i]->figure); // запоминаем
+        move.captured[i]->figure = nullptr;
     }
 
     // проверяем нужно ли превращение в дамку
@@ -93,7 +91,7 @@ void Board::applyMove(Move &move) {
 
 bool Board::needsPromotion(Cell* cell) {
     if (cell->figure == nullptr) return false;
-    if (cell->figure->color == WHITE && cell->y == 7) return true; // если белая на 7 ряду, то дамка
+    if (cell->figure->color == WHITE && cell->y == 7) return true; // если белая на 8 ряду, то дамка
     if (cell->figure->color == BLACK && cell->y == 0) return true; // если черная на 1 ряду, то дамка
     return false;
 }
@@ -112,30 +110,14 @@ void Board::undoMove(Move& move) {
         move.dst->figure = new Checker(color);
     }
 
-    // вернуть фигуру обратно
+    // вернуть фигуру обратно на клетку
     move.src->figure = move.dst->figure;
     move.dst->figure = nullptr;
 
-    // вернуть срубленную фигуру
-    if (move.captured != nullptr) {
-        move.captured->figure = move.capturedFigure; // вернули на доску
+    // вернуть срубленные фигуры
+    for (int i = 0; i < move.captured.size(); i++) {
+        move.captured[i]->figure = move.figures[i];
     }
-}
-
-bool Board::isWhiteWinning() {
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            if (cells[i][j].figure != nullptr &&
-                cells[i][j].figure->color == BLACK) {
-                bool empty = getAllMoves(BLACK).empty();
-                cout << "isWhiteWinning: черные есть, ходов="
-                     << getAllMoves(BLACK).size() << endl;
-                return empty;
-                }
-        }
-    }
-    cout << "isWhiteWinning: черных нет → true" << endl;
-    return true;
 }
 
 Cell* Board::getCell(int x, int y) {
@@ -144,4 +126,13 @@ Cell* Board::getCell(int x, int y) {
 
 bool Board::inBounds(int x, int y) {
     return x >= 0 && x < 8 && y >= 0 && y < 8;
+}
+
+bool Board::noFigures(Color color) {
+    for (int i = 0; i < 8; i++)
+        for (int j = 0; j < 8; j++)
+            if (cells[i][j].figure != nullptr &&
+                cells[i][j].figure->color == color)
+                return false;
+    return true;
 }

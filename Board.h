@@ -17,7 +17,7 @@ public:
     std::vector<Move> getAllMoves(Color color);
     bool needsPromotion(Cell* cell);
     void promote(Cell* cell);
-    bool isWhiteWinning();
+    bool noFigures(Color color);
     Cell* getCell(int x, int y);
     bool inBounds(int x, int y);
 };
