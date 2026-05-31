@@ -1,0 +1,10 @@
+#ifndef CHECKERS_RESULT_H
+#define CHECKERS_RESULT_H
+
+enum Result {
+    WHITE_WINS,
+    BLACK_WINS,
+    NO_RESULT
+};
+
+#endif //CHECKERS_RESULT_H
