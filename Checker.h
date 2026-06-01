@@ -3,7 +3,7 @@
 #include "Figure.h"
 
 class Checker : public Figure {
-    public:
+public:
     Checker(Color color) : Figure(color) {}
     std::vector<Move> getMoves(Board& board, Cell* myCell) override;
 };

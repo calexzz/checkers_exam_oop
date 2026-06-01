@@ -5,7 +5,7 @@
 
 
 class Queen : public Figure {
-    public:
+public:
     Queen(Color color) : Figure(color) {}
     std::vector<Move> getMoves(Board &board, Cell* myCell) override;
 };
