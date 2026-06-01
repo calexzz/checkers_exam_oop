@@ -10,11 +10,12 @@ using namespace std;
 void findCapturesQueen(Board& board, Cell* current, Move currentMove, vector<Move>& result) {
     bool foundAny = false;
 
+    // все 4 направления
     int dx[] = {-1, -1, 1,  1};
     int dy[] = {-1,  1, -1, 1};
 
     for (int i = 0; i < 4; i++) {
-        // идём по диагонали пока пустые клетки
+        // идём по диагонали пока пустые клетки или не край доски
         int x = current->x + dx[i];
         int y = current->y + dy[i];
 
@@ -37,36 +38,38 @@ void findCapturesQueen(Board& board, Cell* current, Move currentMove, vector<Mov
                     foundAny = true;
 
                     Cell* landing = board.getCell(lx, ly);
-                    Figure* savedEnemy = cell->figure;
+                    Figure* savedEnemy = cell->figure; // сохраняем врага для восстановления
 
-                    // обновляем ход
+                    // создаем новый ход с учетом текущего прыжка
                     Move newMove = currentMove;
                     newMove.dst = landing;
-                    newMove.captured.push_back(cell);
-                    newMove.path.push_back(landing);
+                    newMove.captured.push_back(cell); // запоминаем срубленную клетку
+                    newMove.path.push_back(landing); // запоминаем промежуточную позицию
 
                     // временно прыгаем
                     landing->figure = current->figure;
                     current->figure = nullptr;
-                    cell->figure = nullptr;
+                    cell->figure = nullptr; // временно убираем врага
 
-                    // рекурсия с новой позиции
+                    // рекурсивно ищем продолжение серии с новой позиции
                     findCapturesQueen(board, landing, newMove, result);
 
-                    // отменяем
+                    // отменяем прыжок
                     current->figure = landing->figure;
                     landing->figure = nullptr;
                     cell->figure = savedEnemy;
 
+                    // переходим к следующей клетке приземления
                     lx += dx[i];
                     ly += dy[i];
                 }
-                break; // после врага останавливаемся
+                break; // после врага дальше по этой диагонали не идем
             }
             break; // своя фигура — стоп
         }
     }
 
+    // серия завершена - добавляем если было хоть одно взятие
     if (!foundAny && !currentMove.captured.empty()) {
         result.push_back(currentMove);
     }
@@ -76,15 +79,17 @@ std::vector<Move> Queen::getMoves(Board &board, Cell* myCell) {
     vector<Move> moves;
     vector<Move> capturedMoves;
 
-    // ищем серии взятий через рекурсию
+    // ищем серии взятий
     Move startMove;
     startMove.src = myCell;
     startMove.dst = myCell;
     startMove.moveColor = color;
     findCapturesQueen(board, myCell, startMove, capturedMoves);
 
+    // если есть взятия - возвращаем только их
     if (!capturedMoves.empty()) return capturedMoves;
 
+    // обычные ходы дамки
     int dx[] = {-1, -1, 1, 1};
     int dy[] = {-1, 1, -1, 1};
 
@@ -96,7 +101,7 @@ std::vector<Move> Queen::getMoves(Board &board, Cell* myCell) {
             Cell* target = board.getCell(newX, newY);
 
             if (target->isEmpty()) {
-                // обычный ход
+                // пустая клетка - добавляем ход и идём дальше
                 Move move;
                 move.src = myCell;
                 move.dst = target;
@@ -105,6 +110,7 @@ std::vector<Move> Queen::getMoves(Board &board, Cell* myCell) {
                 newX += dx[i];
                 newY += dy[i];
             } else {
+                // на клетке есть фигура
                 break;
             }
         }

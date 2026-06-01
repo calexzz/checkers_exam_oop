@@ -19,8 +19,8 @@ Board::Board() {
 }
 
 void Board::loadPieces(std::ifstream& file, Color color) {
-    std::string label;
-    int count;
+    std::string label; // читаем "White:" или "Black:"
+    int count; // количество фигур данного цвета
 
     // читаем
     file >> label >> count;
@@ -32,21 +32,20 @@ void Board::loadPieces(std::ifstream& file, Color color) {
         bool isQueen = (token[0] == 'M');
         std::string coord = isQueen ? token.substr(1) : token;
 
-        // получаем x и y путем вычитания из прочтенной строки ASCII начальной координаты (А1)
+        // преобразуем координату из текста в индексы массива
         int x = coord[0] - 'A';
         int y = coord[1] - '1';
 
-        // создаем фигуру
+        // создаем фигуру нужного типа и ставим на клетку
         Figure* figure;
         if (isQueen) {
             figure = new Queen(color);
         } else {
             figure = new Checker(color);
         }
-        cells[x][y].figure = figure; // ставим на клетку
+        cells[x][y].figure = figure;
     }
 }
-
 
 void Board::loadFromFile(const std::string &filename) {
     ifstream file(filename);
@@ -77,6 +76,7 @@ void Board::applyMove(Move &move) {
     move.src->figure = nullptr;
 
     // убираем все срубленные фигуры
+    // запоминаем их в move.figures чтобы потом вернуть в undoMove
     for (int i = 0; i < move.captured.size(); i++) {
         move.figures.push_back(move.captured[i]->figure); // запоминаем
         move.captured[i]->figure = nullptr;
@@ -103,7 +103,7 @@ void Board::promote(Cell* cell) {
 }
 
 void Board::undoMove(Move& move) {
-    // если было превращение, то вернуть Checker
+    // если было превращение, то заменяем на Checker
     if (move.wasPromotion) {
         Color color = move.dst->figure->color;
         delete move.dst->figure;
@@ -115,6 +115,7 @@ void Board::undoMove(Move& move) {
     move.dst->figure = nullptr;
 
     // вернуть срубленные фигуры
+    // move.captured[i] — клетка, move.figures[i] — фигура которая там стояла
     for (int i = 0; i < move.captured.size(); i++) {
         move.captured[i]->figure = move.figures[i];
     }

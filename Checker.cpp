@@ -7,46 +7,49 @@
 
 using namespace std;
 
+// вспомогательная рекурсивная функция для поиска взятий
 void findCaptures(Board& board, Cell* current, Move currentMove, vector<Move>& result) {
-    bool found = false; // по умолчанию - взятий не найдено
+    bool found = false; // нашли ли хоть одно взятие с текущей позиции
     const int dx[] = {-1, 1};
 
     for (int i = 0; i < 2; i++) {
         for (int dy : {1, -1}) {
+            // координаты клетки где должен стоять враг
             int ex = current->x + dx[i];
             int ey = current->y + dy;
 
-            if (!board.inBounds(ex, ey)) continue;
+            if (!board.inBounds(ex, ey)) continue; // выход за пределы поля
             Cell* enemy = board.getCell(ex, ey);
-            if (!enemy->hasEnemy(currentMove.moveColor)) continue;
+            if (!enemy->hasEnemy(currentMove.moveColor)) continue; // нет врага - пропускаем
 
+            // координаты клетки куда приземлимся после прыжка
             int lx = ex + dx[i];
             int ly = ey + dy;
 
-            if (!board.inBounds(lx, ly)) continue;
+            if (!board.inBounds(lx, ly)) continue; // выход за пределы поля
             Cell* landing = board.getCell(lx, ly);
-            if (!landing->isEmpty()) continue;
+            if (!landing->isEmpty()) continue; // клетка занята - пропускаем
 
             found = true;
 
-            // сохраняем врага
+            // сохраняем врага для восстановления
             Figure* savedEnemy = enemy->figure;
 
-            // обновляем ход
+            // создаем новый ход с учетом текущего прыжка
             Move newMove = currentMove;
             newMove.dst = landing;
-            newMove.captured.push_back(enemy);
-            newMove.path.push_back(landing);
+            newMove.captured.push_back(enemy); // запоминаем срубленную клетку
+            newMove.path.push_back(landing); // запоминаем промежуточную позицию
 
             // временно прыгаем
             landing->figure = current->figure;
             current->figure = nullptr;
-            enemy->figure = nullptr;
+            enemy->figure = nullptr; // убираем врага
 
-            // рекурсия
+            // рекурсивно ищем продолжение серии с новой позиции
             findCaptures(board, landing, newMove, result);
 
-            // отменяем
+            // отменяем прыжок - возвращаем доску как было
             current->figure = landing->figure;
             landing->figure = nullptr;
             enemy->figure = savedEnemy;
@@ -54,6 +57,7 @@ void findCaptures(Board& board, Cell* current, Move currentMove, vector<Move>& r
     }
 
     // дальше бить нельзя - серия завершена
+    // добавляем накопленный ход в результат если было хоть одно взятие
     if (!found && !currentMove.captured.empty()) {
         result.push_back(currentMove);
     }
@@ -61,7 +65,7 @@ void findCaptures(Board& board, Cell* current, Move currentMove, vector<Move>& r
 }
 
 vector<Move> Checker::getMoves(Board &board, Cell* myCell) {
-    vector<Move> moves;
+    vector<Move> moves; // обычные ходы
     vector<Move> capturedMoves; // ходы со взятием
 
     // определяем направление для шашки по цвету (вверх для белых и вниз для черных)
@@ -71,10 +75,11 @@ vector<Move> Checker::getMoves(Board &board, Cell* myCell) {
     // ищем серии взятий
     Move startMove;
     startMove.src = myCell;
-    startMove.dst = myCell;
+    startMove.dst = myCell; // обновится при вызове findCaptures
     startMove.moveColor = color;
     findCaptures(board, myCell, startMove, capturedMoves);
 
+    // если есть взятия — возвращаем только их (обязательное взятие)
     if (!capturedMoves.empty()) return capturedMoves;
 
     for (int i = 0; i < 2; i++) {

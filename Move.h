@@ -10,9 +10,12 @@ struct Move {
     Cell* src;
     Cell* dst;
     Color moveColor;
-    std::vector<Cell*> captured;
-    std::vector<Figure*> figures;
-    std::vector<Cell*> path;
+
+    std::vector<Cell*> captured; // координаты клеток где стояли срубленные фигуры
+    std::vector<Figure*> figures; // сами объекты срубленных фигур
+
+    std::vector<Cell*> path;  // промежуточные клетки при серии взятий
+
     bool wasPromotion;
 };
 
