@@ -21,24 +21,29 @@ vector<Move> Solver::solve() {
     return solution;
 }
 
-Result Solver::findWinningLine(int depth, Color color) {
+Result Solver::findWinningLine(int currentDepth, Color currentColor) {
     // проверяем условие победы
     if (board.noFigures(BLACK)) return WHITE_WINS; // черных нет - белые выиграли
     if (board.noFigures(WHITE)) return BLACK_WINS; // белых нет - черные выиграли
-    if (depth == 0) return NO_RESULT; // выигрыша нет
+    if (currentDepth == 0) return NO_RESULT; // выигрыша нет
 
-    vector<Move> moves = board.getAllMoves(color);
-    if (moves.empty()) return NO_RESULT; // ходов нет - выигрыша нет
+    vector<Move> moves = board.getAllMoves(currentColor);
+    if (moves.empty()) return NO_RESULT;
 
     // перебираем все возможные ходы текущего цвета
     for (Move& move : moves) {
+        if (move.src == move.dst) continue;
+        if (move.src->figure == nullptr) continue;
+
+        size_t sizeBefore = solution.size();
+
         board.applyMove(move); // делаем ход
 
         // определяем чей следующий код
-        Color nextColor = (color == WHITE) ? BLACK : WHITE;
+        Color nextColor = (currentColor == WHITE) ? BLACK : WHITE;
 
         // рекурсивно ищем выигрыш на глубину-1 для следующего цвета
-        Result result = findWinningLine(depth-1, nextColor);
+        Result result = findWinningLine(currentDepth-1, nextColor);
 
         // отменяем ход - возвращем доску как было
         board.undoMove(move);
@@ -48,7 +53,8 @@ Result Solver::findWinningLine(int depth, Color color) {
             solution.push_back(move);
             return result;
         }
-    }
 
+        solution.resize(sizeBefore);
+    }
     return NO_RESULT; // ни один ход не привёл к победе
 }

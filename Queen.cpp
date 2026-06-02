@@ -7,7 +7,7 @@
 
 using namespace std;
 
-void findCapturesQueen(Board& board, Cell* current, Move currentMove, vector<Move>& result) {
+void findCapturesQueen(Board& board, Cell* current, const Move& currentMove, vector<Move>& result) {
     bool foundAny = false;
 
     // все 4 направления
@@ -39,6 +39,7 @@ void findCapturesQueen(Board& board, Cell* current, Move currentMove, vector<Mov
 
                     Cell* landing = board.getCell(lx, ly);
                     Figure* savedEnemy = cell->figure; // сохраняем врага для восстановления
+                    Figure* myFigure = current->figure;
 
                     // создаем новый ход с учетом текущего прыжка
                     Move newMove = currentMove;
@@ -47,7 +48,7 @@ void findCapturesQueen(Board& board, Cell* current, Move currentMove, vector<Mov
                     newMove.path.push_back(landing); // запоминаем промежуточную позицию
 
                     // временно прыгаем
-                    landing->figure = current->figure;
+                    landing->figure = myFigure;
                     current->figure = nullptr;
                     cell->figure = nullptr; // временно убираем врага
 
@@ -55,7 +56,7 @@ void findCapturesQueen(Board& board, Cell* current, Move currentMove, vector<Mov
                     findCapturesQueen(board, landing, newMove, result);
 
                     // отменяем прыжок
-                    current->figure = landing->figure;
+                    current->figure = myFigure;
                     landing->figure = nullptr;
                     cell->figure = savedEnemy;
 

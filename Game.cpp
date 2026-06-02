@@ -5,6 +5,10 @@
 using namespace std;
 
 void Game::run() {
+    if (board.noFigures(WHITE) || board.noFigures(BLACK)) {
+        cout << "Позиция некорректна - решатель не запущен" << endl;
+        return;
+    }
     history = solver.solve();
 }
 

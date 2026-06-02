@@ -14,7 +14,7 @@ class Solver {
 public:
     Solver(Board& b, int depth) : board(b), depth(depth) {};
     std::vector<Move> solve();
-    Result findWinningLine(int depth, Color color);
+    Result findWinningLine(int currentDepth, Color currentColor);
     Color getWinner() {return winner;}
 };
 

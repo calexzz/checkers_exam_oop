@@ -8,7 +8,7 @@
 using namespace std;
 
 // вспомогательная рекурсивная функция для поиска взятий
-void findCaptures(Board& board, Cell* current, Move currentMove, vector<Move>& result) {
+void findCaptures(Board& board, Cell* current, const Move& currentMove, vector<Move>& result) {
     bool found = false; // нашли ли хоть одно взятие с текущей позиции
     const int dx[] = {-1, 1};
 
@@ -34,6 +34,8 @@ void findCaptures(Board& board, Cell* current, Move currentMove, vector<Move>& r
 
             // сохраняем врага для восстановления
             Figure* savedEnemy = enemy->figure;
+            // сохраняем фигуру
+            Figure* myFigure = current->figure;
 
             // создаем новый ход с учетом текущего прыжка
             Move newMove = currentMove;
@@ -42,7 +44,7 @@ void findCaptures(Board& board, Cell* current, Move currentMove, vector<Move>& r
             newMove.path.push_back(landing); // запоминаем промежуточную позицию
 
             // временно прыгаем
-            landing->figure = current->figure;
+            landing->figure = myFigure;
             current->figure = nullptr;
             enemy->figure = nullptr; // убираем врага
 
@@ -50,7 +52,7 @@ void findCaptures(Board& board, Cell* current, Move currentMove, vector<Move>& r
             findCaptures(board, landing, newMove, result);
 
             // отменяем прыжок - возвращаем доску как было
-            current->figure = landing->figure;
+            current->figure = myFigure;
             landing->figure = nullptr;
             enemy->figure = savedEnemy;
         }

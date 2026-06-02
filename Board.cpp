@@ -18,23 +18,64 @@ Board::Board() {
     }
 }
 
-void Board::loadPieces(std::ifstream& file, Color color) {
+ bool Board::loadPieces(std::ifstream& file, Color color) {
     std::string label; // читаем "White:" или "Black:"
     int count; // количество фигур данного цвета
 
     // читаем
     file >> label >> count;
+
+    if (count > 12) {
+        cout << "Шашек одного цвета не может быть больше 12" << endl;
+        return false;
+    }
+
     for (int i = 0; i < count; i++) {
         std::string token;
         file >> token;
 
-        // проверка на дамку
-        bool isQueen = (token[0] == 'M');
+        char first = token[0];
+        if (first != 'M' && (first < 'A' || first > 'H')) {
+            cout << "Некорректная координата: " << token << endl;
+            return false;
+        }
+
+        // если дамка - проверяем второй символ
+        bool isQueen = false;
+        if (first == 'M') {
+            isQueen = true;
+            char second = token[1];
+            if (second < 'A' || second > 'H') {
+                cout << "Некорректная координата дамки: " << token << endl;
+                return false;
+            }
+        }
+
         std::string coord = isQueen ? token.substr(1) : token;
 
         // преобразуем координату из текста в индексы массива
         int x = coord[0] - 'A';
         int y = coord[1] - '1';
+
+        if (!inBounds(x,y)) {
+            cout << "Координаты фигуры за пределами поля" << endl;
+            return false;
+        }
+
+        if ((x+y) % 2 != 0) {
+            cout << "Фигура может стоять только на черных клетках" << endl;
+            return false;
+        }
+
+        if (!cells[x][y].isEmpty()) {
+            cout << "На клетке уже стоит фигура" << endl;
+            return false;
+        }
+
+        if ((color==WHITE && y==7 && !isQueen) || (color==BLACK && y==0 && !isQueen)) {
+            cout << "На координате "<< char(x + 'A') << char(y + '1') << " должна быть дамка" << endl;
+            return false;
+        }
 
         // создаем фигуру нужного типа и ставим на клетку
         Figure* figure;
@@ -45,6 +86,7 @@ void Board::loadPieces(std::ifstream& file, Color color) {
         }
         cells[x][y].figure = figure;
     }
+    return true;
 }
 
 void Board::loadFromFile(const std::string &filename) {
@@ -52,8 +94,8 @@ void Board::loadFromFile(const std::string &filename) {
     if (!file.is_open()) {
         cerr << "Unable to open file " << filename << endl;
     }
-    loadPieces(file, WHITE);
-    loadPieces(file, BLACK);
+    if (!loadPieces(file, WHITE)) return;
+    if (!loadPieces(file, BLACK)) return;
 }
 
 vector<Move> Board::getAllMoves(Color color) {
@@ -71,18 +113,21 @@ vector<Move> Board::getAllMoves(Color color) {
 }
 
 void Board::applyMove(Move &move) {
+    if (move.src == move.dst) return;
     // передвигаем фигуру
     move.dst->figure = move.src->figure;
     move.src->figure = nullptr;
 
     // убираем все срубленные фигуры
     // запоминаем их в move.figures чтобы потом вернуть в undoMove
+    move.figures.clear();
     for (int i = 0; i < move.captured.size(); i++) {
         move.figures.push_back(move.captured[i]->figure); // запоминаем
         move.captured[i]->figure = nullptr;
     }
 
     // проверяем нужно ли превращение в дамку
+    move.wasPromotion = needsPromotion(move.dst);
     move.wasPromotion = needsPromotion(move.dst);
     if (move.wasPromotion) {
         promote(move.dst); // превращаем
@@ -97,9 +142,7 @@ bool Board::needsPromotion(Cell* cell) {
 }
 
 void Board::promote(Cell* cell) {
-    Color color = cell->figure->color; // сохранили цвет шашки
-    delete cell->figure; // удалили шашку
-    cell->figure = new Queen(color); // создали дамку
+    cell->figure = new Queen(cell->figure->color);
 }
 
 void Board::undoMove(Move& move) {
@@ -110,12 +153,11 @@ void Board::undoMove(Move& move) {
         move.dst->figure = new Checker(color);
     }
 
-    // вернуть фигуру обратно на клетку
+    // вернуть фигуру обратно на src
     move.src->figure = move.dst->figure;
     move.dst->figure = nullptr;
 
     // вернуть срубленные фигуры
-    // move.captured[i] — клетка, move.figures[i] — фигура которая там стояла
     for (int i = 0; i < move.captured.size(); i++) {
         move.captured[i]->figure = move.figures[i];
     }

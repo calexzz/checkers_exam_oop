@@ -8,7 +8,7 @@
 
 class Board {
     Cell cells[8][8];
-    void loadPieces(std::ifstream& file, Color color); // вызывается внутри класса Board
+    bool loadPieces(std::ifstream& file, Color color); // вызывается внутри класса Board
 public:
     Board();
     void loadFromFile(const std::string& filename);

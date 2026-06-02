@@ -8,9 +8,8 @@ int main() {
     setlocale(LC_ALL, "Russian");
 
     cout << "Загрузка позиции..." << endl;
-    Game game("task_position.txt", 4); // создаём игру: загружаем позицию из файла, глубина поиска = 4 полухода
+    Game game("task_position.txt", 4); // создаём игру: загружаем позицию из файла
 
-    cout << "Позиция загружена, запуск решателя:" << endl;
     game.run(); // запускаем решатель
 
     game.printResult(); // выводим результат
