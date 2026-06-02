@@ -35,8 +35,6 @@ Result Solver::findWinningLine(int currentDepth, Color currentColor) {
         if (move.src == move.dst) continue;
         if (move.src->figure == nullptr) continue;
 
-        size_t sizeBefore = solution.size();
-
         board.applyMove(move); // делаем ход
 
         // определяем чей следующий код
@@ -53,8 +51,6 @@ Result Solver::findWinningLine(int currentDepth, Color currentColor) {
             solution.push_back(move);
             return result;
         }
-
-        solution.resize(sizeBefore);
     }
     return NO_RESULT; // ни один ход не привёл к победе
 }
