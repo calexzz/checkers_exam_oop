@@ -32,9 +32,6 @@ Result Solver::findWinningLine(int currentDepth, Color currentColor) {
 
     // перебираем все возможные ходы текущего цвета
     for (Move& move : moves) {
-        if (move.src == move.dst) continue;
-        if (move.src->figure == nullptr) continue;
-
         board.applyMove(move); // делаем ход
 
         // определяем чей следующий код
